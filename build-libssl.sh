@@ -461,6 +461,35 @@ else
   echo "Using ${OPENSSL_ARCHIVE_FILE_NAME}"
 fi
 
+# Check that have downloaded and using the right thing.
+# Checksums available at https://www.openssl.org/source/ for current releases
+# and at https://www.openssl.org/source/old/ for old releases.
+OPENSSL_CHECKSUMS="
+  1.0.2u ecd0c6ffb493dd06707d38b14bb4d8c2288bb7033735606569d8f90f89669d16
+"
+checksum_checked=false
+while read version expectedSHA256; do
+  if [ "$VERSION" = "$version" ]; then
+    actualSHA256="$(shasum -a 256 "${OPENSSL_ARCHIVE_FILE_NAME}" | awk '{print $1}')"
+    if [ "$actualSHA256" = "$expectedSHA256" ]; then
+      checksum_checked=true
+    else
+      echo "SHA-256 checksum mismatch for ${OPENSSL_ARCHIVE_FILE_NAME}"
+      echo "Please verify the file contents and your network connection."
+      echo "Official checksums available at https://www.openssl.org/source/"
+      exit 1
+    fi
+  fi
+done << EOF
+  $OPENSSL_CHECKSUMS
+EOF
+if [ "$checksum_checked" != "true" ]; then
+  echo "No known checksums for ${OPENSSL_ARCHIVE_FILE_NAME} (OpenSSL $VERSION)."
+  echo "Please lookup the checksum at https://www.openssl.org/source/"
+  echo "and update the OPENSSL_CHECKSUMS list in the script."
+  exit 1
+fi
+
 # Set reference to custom configuration (OpenSSL 1.1.1)
 # See: https://github.com/openssl/openssl/commit/afce395cba521e395e6eecdaf9589105f61e4411
 export OPENSSL_LOCAL_CONFIG_DIR="${SCRIPTDIR}/config"
