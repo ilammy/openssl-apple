@@ -25,7 +25,7 @@ set -u
 # SCRIPT DEFAULTS
 
 # Default version in case no version is specified
-DEFAULTVERSION="1.0.2u"
+DEFAULTVERSION="1.1.1g"
 
 # Default (=full) set of architectures (OpenSSL <= 1.0.2) or targets (OpenSSL >= 1.1.1) to build
 #DEFAULTARCHS="ios_i386 ios_x86_64 ios_arm64 ios_armv7s ios_armv7 tv_x86_64 tv_arm64 mac_x86_64 watchos_armv7k watchos_arm64_32 watchos_i386"
@@ -487,6 +487,7 @@ fi
 # and at https://www.openssl.org/source/old/ for old releases.
 OPENSSL_CHECKSUMS="
   1.0.2u ecd0c6ffb493dd06707d38b14bb4d8c2288bb7033735606569d8f90f89669d16
+  1.1.1g ddb04774f1e32f0c49751e21b67216ac87852ceb056b75209af2443400636d46
 "
 checksum_checked=false
 while read version expectedSHA256; do
