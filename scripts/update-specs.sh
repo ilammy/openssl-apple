@@ -21,6 +21,18 @@ MIN_OSX_SDK=${MIN_OSX_SDK:-10.9}
 # GitHub repository where build script and binaries are hosted
 GITHUB_REPO="https://github.com/cossacklabs/openssl-apple"
 
+# Output framework archive names
+IPHONE_STATIC_NAME="openssl-static-iPhone.zip"
+MACOSX_STATIC_NAME="openssl-static-MacOSX.zip"
+IPHONE_DYNAMIC_NAME="openssl-dynamic-iPhone.zip"
+MACOSX_DYNAMIC_NAME="openssl-dynamic-MacOSX.zip"
+OUTPUT_ARCHIVES=(
+    "$IPHONE_STATIC_NAME"
+    "$MACOSX_STATIC_NAME"
+    "$IPHONE_DYNAMIC_NAME"
+    "$MACOSX_DYNAMIC_NAME"
+)
+
 die() {
     echo 2>&1 "$@"
     exit 1
@@ -34,9 +46,8 @@ fi
 version="$(cat "$OUTPUT/version")"
 
 # Carthage
-for package in "$OUTPUT"/openssl-*.zip
+for package in "${OUTPUT_ARCHIVES[@]}"
 do
-    package="$(basename "$package")"
     spec="carthage/${package%%.zip}.json"
     if grep -q "\"$version\"" "$spec"
     then
@@ -53,18 +64,19 @@ done
 echo "Updated carthage/*.json"
 echo
 
-# CocoaPods does not support static frameworks and use only dynamic ones.
 podspec="cocoapods/CLOpenSSL.podspec"
-iphone_archive="openssl-dynamic-iPhone.zip"
-macosx_archive="openssl-dynamic-MacOSX.zip"
 sed -e "s/%%OPENSSL_VERSION%%/$version/g" \
     -e "s!%%GITHUB_REPO%%!$GITHUB_REPO!g" \
     -e "s/%%MIN_IOS_SDK%%/$MIN_IOS_SDK/g" \
     -e "s/%%MIN_OSX_SDK%%/$MIN_OSX_SDK/g" \
-    -e "s/%%IPHONE_ARCHIVE_NAME%%/$iphone_archive/g" \
-    -e "s/%%IPHONE_ARCHIVE_HASH%%/$(shasum -a 256 "$OUTPUT/$iphone_archive" | awk '{print $1}')/g" \
-    -e "s/%%MACOSX_ARCHIVE_NAME%%/$macosx_archive/g" \
-    -e "s/%%MACOSX_ARCHIVE_HASH%%/$(shasum -a 256 "$OUTPUT/$macosx_archive" | awk '{print $1}')/g" \
+    -e "s/%%IPHONE_STATIC_NAME%%/$IPHONE_STATIC_NAME/g" \
+    -e "s/%%IPHONE_STATIC_HASH%%/$(shasum -a 256 "$OUTPUT/$IPHONE_STATIC_NAME" | awk '{print $1}')/g" \
+    -e "s/%%MACOSX_STATIC_NAME%%/$MACOSX_STATIC_NAME/g" \
+    -e "s/%%MACOSX_STATIC_HASH%%/$(shasum -a 256 "$OUTPUT/$MACOSX_STATIC_NAME" | awk '{print $1}')/g" \
+    -e "s/%%IPHONE_DYNAMIC_NAME%%/$IPHONE_DYNAMIC_NAME/g" \
+    -e "s/%%IPHONE_DYNAMIC_HASH%%/$(shasum -a 256 "$OUTPUT/$IPHONE_DYNAMIC_NAME" | awk '{print $1}')/g" \
+    -e "s/%%MACOSX_DYNAMIC_NAME%%/$MACOSX_DYNAMIC_NAME/g" \
+    -e "s/%%MACOSX_DYNAMIC_HASH%%/$(shasum -a 256 "$OUTPUT/$MACOSX_DYNAMIC_NAME" | awk '{print $1}')/g" \
     $podspec.template > $podspec
 echo "Updated $podspec"
 echo

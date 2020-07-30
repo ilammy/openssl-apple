@@ -5,10 +5,14 @@ Pod::Spec.new do |s|
     min_target_osx  = "%%MIN_OSX_SDK%%"
 
     github_repo = "%%GITHUB_REPO%%"
-    iPhone_archive_name = "%%IPHONE_ARCHIVE_NAME%%"
-    iPhone_archive_hash = "%%IPHONE_ARCHIVE_HASH%%"
-    macOSX_archive_name = "%%MACOSX_ARCHIVE_NAME%%"
-    macOSX_archive_hash = "%%MACOSX_ARCHIVE_HASH%%"
+    iPhone_static_name  = "%%IPHONE_STATIC_NAME%%"
+    iPhone_static_hash  = "%%IPHONE_STATIC_HASH%%"
+    macOSX_static_name  = "%%MACOSX_STATIC_NAME%%"
+    macOSX_static_hash  = "%%MACOSX_STATIC_HASH%%"
+    iPhone_dynamic_name = "%%IPHONE_DYNAMIC_NAME%%"
+    iPhone_dynamic_hash = "%%IPHONE_DYNAMIC_HASH%%"
+    macOSX_dynamic_name  = "%%MACOSX_DYNAMIC_NAME%%"
+    macOSX_dynamic_hash  = "%%MACOSX_DYNAMIC_HASH%%"
 
     # Project metadata
     s.name     = "CLOpenSSL"
@@ -177,46 +181,62 @@ Pod::Spec.new do |s|
 EOF
     }
 
-    # This is where all the action happens. Since OpenSSL is so huge and building it
-    # properly is so painful to setup, "pod install" will download prebuilt binaries
-    # that we publish elsewhere (not in the git repo with the build script code).
-    s.prepare_command = <<-EOF
-        echo "Downloading prebuilt framework for iOS..."
-        curl --location --output iPhone.zip \
-            "#{github_repo}/releases/download/v#{openssl_version}/#{iPhone_archive_name}"
-        echo "Verifying #{iPhone_archive_name}..."
-        if [ "$(shasum -a 256 iPhone.zip | awk '{print $1}')" != "#{iPhone_archive_hash}" ]
-        then
-            echo "checksum mismatch for #{iPhone_archive_name}"
-            exit 1
-        fi
-        echo "Unpacking #{iPhone_archive_name}..."
-        unzip iPhone.zip
-        mkdir -p iPhone
-        mv openssl.framework iPhone/
-        rm iPhone.zip
+    def vendored_openssl(spec, archives)
+        # This is where all the action happens. Since OpenSSL is so huge and building it
+        # properly is so painful to setup, "pod install" will download prebuilt binaries
+        # that we publish elsewhere (not in the git repo with the build script code).
+        spec.prepare_command = <<-EOF
+            echo "Downloading prebuilt framework for iOS..."
+            curl --location --output "#{archives[:iPhone][:name]}" \
+                "#{github_repo}/releases/download/v#{openssl_version}/#{archives[:iPhone][:name]}"
+            echo "Verifying #{archives[:iPhone][:name]}..."
+            if [ "$(shasum -a 256 "#{archives[:iPhone][:name]}" | awk '{print $1}')" != "#{archives[:iPhone][:hash]}" ]
+            then
+                echo "checksum mismatch for #{archives[:iPhone][:name]}"
+                exit 1
+            fi
+            echo "Unpacking #{archives[:iPhone][:name]}..."
+            unzip "#{archives[:iPhone][:name]}"
+            rm "#{archives[:iPhone][:name]}"
+            mkdir -p "#{archives[:iPhone][:name]}"
+            mv openssl.framework "#{archives[:iPhone][:name]}"
 
-        echo "Downloading prebuilt framework for macOS..."
-        curl --location --output macOSX.zip \
-            "#{github_repo}/releases/download/v#{openssl_version}/#{macOSX_archive_name}"
-        echo "Verifying #{macOSX_archive_name}..."
-        if [ "$(shasum -a 256 macOSX.zip | awk '{print $1}')" != "#{macOSX_archive_hash}" ]
-        then
-            echo "checksum mismatch for #{macOSX_archive_name}"
-            exit 1
-        fi
-        echo "Unpacking #{macOSX_archive_name}..."
-        unzip macOSX.zip
-        mkdir -p macOSX
-        mv openssl.framework macOSX/
-        rm macOSX.zip
-    EOF
+            echo "Downloading prebuilt framework for macOS..."
+            curl --location --output "#{archives[:MacOSX][:name]}" \
+                "#{github_repo}/releases/download/v#{openssl_version}/#{archives[:MacOSX][:name]}"
+            echo "Verifying #{archives[:MacOSX][:name]}..."
+            if [ "$(shasum -a 256 "#{archives[:MacOSX][:name]}" | awk '{print $1}')" != "#{archives[:MacOSX][:hash]}" ]
+            then
+                echo "checksum mismatch for #{archives[:MacOSX][:name]}"
+                exit 1
+            fi
+            echo "Unpacking #{archives[:MacOSX][:name]}..."
+            unzip "#{archives[:MacOSX][:name]}"
+            rm "#{archives[:MacOSX][:name]}"
+            mkdir -p "#{archives[:MacOSX][:name]}"
+            mv openssl.framework "#{archives[:MacOSX][:name]}"
+        EOF
 
-    # This pod does not build any source code, it reuses prebuilt framework.
-    # However, we still need to specify the minimum target platform versions
-    # for CocoaPods to generate the Xcode project properly.
-    s.ios.deployment_target   = "#{min_target_ios}"
-    s.ios.vendored_frameworks = "iPhone/openssl.framework"
-    s.osx.deployment_target   = "#{min_target_osx}"
-    s.osx.vendored_frameworks = "macOSX/openssl.framework"
+        # This pod does not build any source code, it reuses prebuilt framework.
+        # However, we still need to specify the minimum target platform versions
+        # for CocoaPods to generate the Xcode project properly.
+        spec.ios.deployment_target   = min_target_ios
+        spec.ios.vendored_frameworks = "#{archives[:iPhone][:name]}/openssl.framework"
+        spec.osx.deployment_target   = min_target_osx
+        spec.osx.vendored_frameworks = "#{archives[:MacOSX][:name]}/openssl.framework"
+    end
+
+    s.default_subspec = 'dynamic'
+
+    # This is "CLOpenSSL/dynamic" subspec providing dynamic openssl.framework.
+    # It will be included into the final app as is. This is useful if OpenSSL
+    # is used by multiple other libraries.
+    s.subspec 'dynamic' do |ss|
+        vendored_openssl ss, {
+            :iPhone => { :name => iPhone_dynamic_name,
+                         :hash => iPhone_dynamic_hash },
+            :MacOSX => { :name => macOSX_dynamic_name,
+                         :hash => macOSX_dynamic_hash },
+        }
+    end
 end
