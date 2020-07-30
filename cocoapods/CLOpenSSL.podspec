@@ -4,7 +4,7 @@ Pod::Spec.new do |s|
     min_target_ios  = "8.0"
     min_target_osx  = "10.9"
 
-    github_repo = "https://github.com/cossacklabs/openssl-apple"
+    github_repo = "https://github.com/ilammy/openssl-apple"
     iPhone_static_name  = "openssl-static-iPhone.zip"
     iPhone_static_hash  = "d0d8eebb2e8663c1beedf3998657a0e68f026d68d27efcfb117937b446d791d0"
     macOSX_static_name  = "openssl-static-MacOSX.zip"
