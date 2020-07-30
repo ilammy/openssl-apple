@@ -181,50 +181,46 @@ Pod::Spec.new do |s|
 EOF
     }
 
-    def vendored_openssl(spec, archives)
-        # This is where all the action happens. Since OpenSSL is so huge and building it
-        # properly is so painful to setup, "pod install" will download prebuilt binaries
-        # that we publish elsewhere (not in the git repo with the build script code).
-        spec.prepare_command = <<-EOF
-            echo "Downloading prebuilt framework for iOS..."
-            curl --location --output "#{archives[:iPhone][:name]}" \
-                "#{github_repo}/releases/download/v#{openssl_version}/#{archives[:iPhone][:name]}"
-            echo "Verifying #{archives[:iPhone][:name]}..."
-            if [ "$(shasum -a 256 "#{archives[:iPhone][:name]}" | awk '{print $1}')" != "#{archives[:iPhone][:hash]}" ]
+    # This is where all the action happens. Since OpenSSL is so huge and building it
+    # properly is so painful to setup, "pod install" will download prebuilt binaries
+    # that we publish elsewhere (not in the git repo with the build script code).
+    #
+    # Unfortunately, CocoaPods does not allow to specify "prepare_command" for
+    # individual subspecs, so the users will have to download both static and
+    # dynamic frameworks, regardless of what they actually use. Sorry, GitHub!
+    #
+    # Unfortunately--though, actually fortunately--Podspecs do not allow arbitrary
+    # Ruby code in them so we can't use loops and functions here. However, we can
+    # use them in Bash to avoid tons of copypasta, otherwise inevitable.
+    s.prepare_command = <<-EOF
+        (
+            echo "#{iPhone_static_name}  #{iPhone_static_hash}"
+            echo "#{macOSX_static_name}  #{macOSX_static_hash}"
+            echo "#{iPhone_dynamic_name} #{iPhone_dynamic_hash}"
+            echo "#{macOSX_dynamic_name} #{macOSX_dynamic_hash}"
+        ) | while read name hash
+        do
+            echo "Downloading $name..."
+            curl --location --output "$name" \
+                "#{github_repo}/releases/download/v#{openssl_version}/$name"
+            echo "Verifying $name..."
+            if [[ "$(shasum -a 256 "$name" | awk '{print $1}')" != "$hash" ]]
             then
-                echo "checksum mismatch for #{archives[:iPhone][:name]}"
+                echo "Checksum mismatch for $name"
                 exit 1
             fi
-            echo "Unpacking #{archives[:iPhone][:name]}..."
-            unzip "#{archives[:iPhone][:name]}"
-            rm "#{archives[:iPhone][:name]}"
-            mkdir -p "#{archives[:iPhone][:name]}"
-            mv openssl.framework "#{archives[:iPhone][:name]}"
+            echo "Unpacking $name..."
+            unzip "$name"
+            rm "$name"
+            mkdir -p "$name"
+            mv openssl.framework "$name"
+        done
+    EOF
 
-            echo "Downloading prebuilt framework for macOS..."
-            curl --location --output "#{archives[:MacOSX][:name]}" \
-                "#{github_repo}/releases/download/v#{openssl_version}/#{archives[:MacOSX][:name]}"
-            echo "Verifying #{archives[:MacOSX][:name]}..."
-            if [ "$(shasum -a 256 "#{archives[:MacOSX][:name]}" | awk '{print $1}')" != "#{archives[:MacOSX][:hash]}" ]
-            then
-                echo "checksum mismatch for #{archives[:MacOSX][:name]}"
-                exit 1
-            fi
-            echo "Unpacking #{archives[:MacOSX][:name]}..."
-            unzip "#{archives[:MacOSX][:name]}"
-            rm "#{archives[:MacOSX][:name]}"
-            mkdir -p "#{archives[:MacOSX][:name]}"
-            mv openssl.framework "#{archives[:MacOSX][:name]}"
-        EOF
-
-        # This pod does not build any source code, it reuses prebuilt framework.
-        # However, we still need to specify the minimum target platform versions
-        # for CocoaPods to generate the Xcode project properly.
-        spec.ios.deployment_target   = min_target_ios
-        spec.ios.vendored_frameworks = "#{archives[:iPhone][:name]}/openssl.framework"
-        spec.osx.deployment_target   = min_target_osx
-        spec.osx.vendored_frameworks = "#{archives[:MacOSX][:name]}/openssl.framework"
-    end
+    # Set the minimum platform versions. We just know the right ones from the
+    # prebuild frameworks we download.
+    s.ios.deployment_target = min_target_ios
+    s.osx.deployment_target = min_target_osx
 
     s.default_subspec = 'dynamic'
 
@@ -232,11 +228,7 @@ EOF
     # It will be included into the final app as is. This is useful if OpenSSL
     # is used by multiple other libraries.
     s.subspec 'dynamic' do |ss|
-        vendored_openssl ss, {
-            :iPhone => { :name => iPhone_dynamic_name,
-                         :hash => iPhone_dynamic_hash },
-            :MacOSX => { :name => macOSX_dynamic_name,
-                         :hash => macOSX_dynamic_hash },
-        }
+        ss.ios.vendored_frameworks = "#{iPhone_dynamic_name}/openssl.framework"
+        ss.osx.vendored_frameworks = "#{macOSX_dynamic_name}/openssl.framework"
     end
 end
