@@ -11,8 +11,8 @@ Pod::Spec.new do |s|
     macOSX_static_hash  = "%%MACOSX_STATIC_HASH%%"
     iPhone_dynamic_name = "%%IPHONE_DYNAMIC_NAME%%"
     iPhone_dynamic_hash = "%%IPHONE_DYNAMIC_HASH%%"
-    macOSX_dynamic_name  = "%%MACOSX_DYNAMIC_NAME%%"
-    macOSX_dynamic_hash  = "%%MACOSX_DYNAMIC_HASH%%"
+    macOSX_dynamic_name = "%%MACOSX_DYNAMIC_NAME%%"
+    macOSX_dynamic_hash = "%%MACOSX_DYNAMIC_HASH%%"
 
     # Project metadata
     s.name     = "CLOpenSSL"
