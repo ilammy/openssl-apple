@@ -628,6 +628,9 @@ if [ ${#OPENSSLCONF_ALL[@]} -gt 1 ]; then
       *_ios_sim_i386.h)
         DEFINE_CONDITION="TARGET_OS_IOS && TARGET_OS_SIMULATOR && TARGET_CPU_X86"
       ;;
+      *_ios_sim_arm64.h)
+        DEFINE_CONDITION="TARGET_OS_IOS && TARGET_OS_SIMULATOR && TARGET_CPU_ARM64"
+      ;;
       *_ios_arm64.h)
         DEFINE_CONDITION="TARGET_OS_IOS && TARGET_OS_EMBEDDED && TARGET_CPU_ARM64"
       ;;
