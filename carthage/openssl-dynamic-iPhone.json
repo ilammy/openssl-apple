@@ -1,4 +1,5 @@
 {
+    "1.1.10701": "https://github.com/ilammy/openssl-apple/releases/download/v1.1.10701/openssl-dynamic-iPhone.zip",
     "1.1.107": "https://github.com/cossacklabs/openssl-apple/releases/download/v1.1.107/openssl-dynamic-iPhone.zip",
     "1.0.221": "https://github.com/cossacklabs/openssl-apple/releases/download/v1.0.2u/openssl-iOS.zip"
 }
