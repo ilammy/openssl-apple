@@ -14,7 +14,7 @@ endif
 VERSION ?= 1.1.1g
 
 ## Extra version of the distributed package
-PACKAGE_VERSION ?= 1
+PACKAGE_VERSION ?= 2
 
 MIN_IOS_SDK = 10.0
 MIN_OSX_SDK = 10.11
