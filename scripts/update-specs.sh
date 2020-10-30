@@ -67,8 +67,8 @@ sed -e "s/%%OPENSSL_VERSION%%/$version/g" \
     -e "s!%%GITHUB_REPO%%!$GITHUB_REPO!g" \
     -e "s/%%MIN_IOS_SDK%%/$MIN_IOS_SDK/g" \
     -e "s/%%MIN_OSX_SDK%%/$MIN_OSX_SDK/g" \
-    -e "s/%%XCFRAMEWORK_ARCHIVE_NAME%%/$XCFRAMEWORK_STATIC_NAME/g" \
-    -e "s/%%XCFRAMEWORK_ARCHIVE_HASH%%/$(shasum -a 256 "$OUTPUT/$XCFRAMEWORK_STATIC_NAME" | awk '{print $1}')/g" \
+    -e "s/%%XCFRAMEWORK_ARCHIVE_NAME%%/$XCFRAMEWORK_DYNAMIC_NAME/g" \
+    -e "s/%%XCFRAMEWORK_ARCHIVE_HASH%%/$(shasum -a 256 "$OUTPUT/$XCFRAMEWORK_DYNAMIC_NAME" | awk '{print $1}')/g" \
     $podspec.template > $podspec
 echo "Updated $podspec"
 echo
