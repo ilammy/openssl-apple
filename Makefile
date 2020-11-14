@@ -25,9 +25,17 @@ BUILD_TARGETS += ios-sim-cross-i386 ios-sim-cross-x86_64
 BUILD_TARGETS += ios64-cross-arm64 ios64-cross-arm64e ios-cross-armv7s ios-cross-armv7
 BUILD_TARGETS += macos64-x86_64
 
-# Apple Silicon support is currently experimental. It is available only with
-# beta Xcode versions installed. Once iOS 14 and macOS 11 are released and
-# stable Xcode supports arm64, these settings are going to become default.
+# Automatically enable Apple Silicon support if running with Xcode 12.2+
+# unless the user has decided explicitly.
+ifeq ($(APPLE_SILICON_SUPPORT),)
+xcode_version := $(shell xcodebuild -version | awk '/Xcode/ {print $$2}')
+ifeq ($(shell printf '%s\n' "12.2" "$(xcode_version)" | sort -V | head -1),12.2)
+APPLE_SILICON_SUPPORT := yes
+endif
+endif
+
+# Not all currently used Xcode versions support building for Apple Silicon.
+# Enable this architecture only when requested.
 ifeq ($(APPLE_SILICON_SUPPORT),yes)
 BUILD_TARGETS += macos64-arm64
 BUILD_TARGETS += ios-sim-cross-arm64
