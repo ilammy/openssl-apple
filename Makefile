@@ -22,7 +22,7 @@ MIN_OSX_SDK = 10.11
 export MIN_IOS_SDK MIN_OSX_SDK
 
 BUILD_TARGETS += ios-sim-cross-i386 ios-sim-cross-x86_64
-BUILD_TARGETS += ios64-cross-arm64 ios64-cross-arm64e ios-cross-armv7s ios-cross-armv7
+BUILD_TARGETS += ios64-cross-arm64 ios-cross-armv7s ios-cross-armv7
 BUILD_TARGETS += macos64-x86_64
 
 # Automatically enable Apple Silicon support if running with Xcode 12.2+
