@@ -5,10 +5,8 @@ Pod::Spec.new do |s|
     min_target_osx  = "%%MIN_OSX_SDK%%"
 
     github_repo = "%%GITHUB_REPO%%"
-    iPhone_archive_name = "%%IPHONE_ARCHIVE_NAME%%"
-    iPhone_archive_hash = "%%IPHONE_ARCHIVE_HASH%%"
-    macOSX_archive_name = "%%MACOSX_ARCHIVE_NAME%%"
-    macOSX_archive_hash = "%%MACOSX_ARCHIVE_HASH%%"
+    XCFramework_archive_name = "%%XCFRAMEWORK_ARCHIVE_NAME%%"
+    XCFramework_archive_hash = "%%XCFRAMEWORK_ARCHIVE_HASH%%"
 
     # Project metadata
     s.name     = "CLOpenSSL"
@@ -182,26 +180,22 @@ EOF
     # properly is so painful to setup, "pod install" will download prebuilt binaries
     # that we publish elsewhere (not in the git repo with the build script code).
     s.prepare_command = <<-EOF
-        (
-            echo "#{iPhone_archive_name} #{iPhone_archive_hash}"
-            echo "#{macOSX_archive_name} #{macOSX_archive_hash}"
-        ) | while read name hash
-        do
-            echo "Downloading $name..."
-            curl --location --output "$name" \
-                "#{github_repo}/releases/download/v#{openssl_version}/$name"
-            echo "Verifying $name..."
-            if [[ "$(shasum -a 256 "$name" | awk '{print $1}')" != "$hash" ]]
-            then
-                echo "Checksum mismatch for $name"
-                exit 1
-            fi
-            echo "Unpacking $name..."
-            unzip "$name"
-            rm "$name"
-            mkdir -p "$name"
-            mv openssl.framework "$name"
-        done
+        name="#{XCFramework_archive_name}"
+        hash="#{XCFramework_archive_hash}"
+        echo "Downloading $name..."
+        curl --location --output "$name" \
+            "#{github_repo}/releases/download/v#{openssl_version}/$name"
+        echo "Verifying $name..."
+        if [[ "$(shasum -a 256 "$name" | awk '{print $1}')" != "$hash" ]]
+        then
+            echo "Checksum mismatch for $name"
+            exit 1
+        fi
+        echo "Unpacking $name..."
+        unzip "$name"
+        rm "$name"
+        mkdir -p "$name"
+        mv openssl.xcframework "$name"
     EOF
 
     # Tell CocoaPods that the frameworks we publish are "static frameworks".
@@ -213,9 +207,8 @@ EOF
     s.ios.deployment_target = min_target_ios
     s.osx.deployment_target = min_target_osx
 
-    # These are prebuilt frameworks that will be vendored into the final app.
-    s.ios.vendored_frameworks = "#{iPhone_archive_name}/openssl.framework"
-    s.osx.vendored_frameworks = "#{macOSX_archive_name}/openssl.framework"
+    # This is prebuilt framework that will be vendored into the final app.
+    s.vendored_frameworks = "#{XCFramework_archive_name}/openssl.xcframework"
 
     # FIXME(ilammy, 2020-10-23): use XCFrameworks for full arm64 support
     # The framework produced by CLOpenSSL does not contain arm64 slice for

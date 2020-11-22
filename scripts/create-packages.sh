@@ -10,13 +10,11 @@
 #
 #     OUTPUT        output directory            (default: output)
 #     FLAVORS       package flavors to build    (default: static dynamic)
-#     PLATFORMS     platforms to package for    (default: iPhone MacOSX)
 
 set -eu
 
 OUTPUT=${OUTPUT:-output}
 FLAVORS=${FLAVORS:-static dynamic}
-PLATFORMS=${PLATFORMS:-iPhone MacOSX}
 
 die() {
     echo 2>&1 "$@"
@@ -49,23 +47,22 @@ for flavor in $FLAVORS
 do
     ./create-openssl-framework.sh $flavor
 
-    for platform in $PLATFORMS
-    do
-        echo "Packaging $flavor framework for $platform"
+    echo "Packaging $flavor XCFramework"
 
-        # zip stores relative paths, cd into directory to keep them tidy.
-        # Is also important to preserve symlinks for macOS frameworks.
-        cd frameworks/$platform
-        zip --recurse-paths --symlinks --quiet \
-            openssl.zip openssl.framework
-        cd "$OLDPWD"
+    # zip stores relative paths, cd into directory to keep them tidy.
+    # Is also important to preserve symlinks for macOS frameworks.
+    cd frameworks
+    zip --recurse-paths --symlinks --quiet \
+        openssl.zip openssl.xcframework
+    cd "$OLDPWD"
 
-        mv frameworks/$platform/openssl.zip \
-            "$OUTPUT/openssl-$flavor-$platform.zip"
+    mv frameworks/openssl.zip \
+        "$OUTPUT/openssl-$flavor-xcframework.zip"
 
-        framework_version frameworks/$platform/openssl.framework \
-            > "$OUTPUT/version"
+    # Use macOS framework as a reference for versioning.
+    # (They are all the same, but we need non-XCFramework).
+    framework_version frameworks/MacOSX/openssl.framework \
+        > "$OUTPUT/version"
 
-        echo "Packaged $flavor framework for $platform"
-    done
+    echo "Packaged $flavor XCFramework"
 done
