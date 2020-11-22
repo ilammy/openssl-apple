@@ -22,15 +22,11 @@ MIN_OSX_SDK=${MIN_OSX_SDK:-10.9}
 GITHUB_REPO="https://github.com/cossacklabs/openssl-apple"
 
 # Output framework archive names
-IPHONE_STATIC_NAME="openssl-static-iPhone.zip"
-MACOSX_STATIC_NAME="openssl-static-MacOSX.zip"
-IPHONE_DYNAMIC_NAME="openssl-dynamic-iPhone.zip"
-MACOSX_DYNAMIC_NAME="openssl-dynamic-MacOSX.zip"
+XCFRAMEWORK_STATIC_NAME="openssl-static-xcframework.zip"
+XCFRAMEWORK_DYNAMIC_NAME="openssl-dynamic-xcframework.zip"
 OUTPUT_ARCHIVES=(
-    "$IPHONE_STATIC_NAME"
-    "$MACOSX_STATIC_NAME"
-    "$IPHONE_DYNAMIC_NAME"
-    "$MACOSX_DYNAMIC_NAME"
+    "$XCFRAMEWORK_STATIC_NAME"
+    "$XCFRAMEWORK_DYNAMIC_NAME"
 )
 
 die() {
@@ -66,15 +62,14 @@ echo
 
 # Unfortuntely, CocoaPods does not support static frameworks very well
 # so we provide only dynamic flavor of the Podspec.
-podspec="cocoapods/CLOpenSSL.podspec"
+podspec="cocoapods/CLOpenSSL-XCF.podspec"
+template="cocoapods/CLOpenSSL.podspec.template"
 sed -e "s/%%OPENSSL_VERSION%%/$version/g" \
     -e "s!%%GITHUB_REPO%%!$GITHUB_REPO!g" \
     -e "s/%%MIN_IOS_SDK%%/$MIN_IOS_SDK/g" \
     -e "s/%%MIN_OSX_SDK%%/$MIN_OSX_SDK/g" \
-    -e "s/%%IPHONE_ARCHIVE_NAME%%/$IPHONE_DYNAMIC_NAME/g" \
-    -e "s/%%IPHONE_ARCHIVE_HASH%%/$(shasum -a 256 "$OUTPUT/$IPHONE_DYNAMIC_NAME" | awk '{print $1}')/g" \
-    -e "s/%%MACOSX_ARCHIVE_NAME%%/$MACOSX_DYNAMIC_NAME/g" \
-    -e "s/%%MACOSX_ARCHIVE_HASH%%/$(shasum -a 256 "$OUTPUT/$MACOSX_DYNAMIC_NAME" | awk '{print $1}')/g" \
-    $podspec.template > $podspec
+    -e "s/%%XCFRAMEWORK_ARCHIVE_NAME%%/$XCFRAMEWORK_DYNAMIC_NAME/g" \
+    -e "s/%%XCFRAMEWORK_ARCHIVE_HASH%%/$(shasum -a 256 "$OUTPUT/$XCFRAMEWORK_DYNAMIC_NAME" | awk '{print $1}')/g" \
+    $template > $podspec
 echo "Updated $podspec"
 echo
