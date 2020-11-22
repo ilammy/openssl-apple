@@ -19,7 +19,7 @@ MIN_IOS_SDK=${MIN_IOS_SDK:-8.0}
 MIN_OSX_SDK=${MIN_OSX_SDK:-10.9}
 
 # GitHub repository where build script and binaries are hosted
-GITHUB_REPO="https://github.com/cossacklabs/openssl-apple"
+GITHUB_REPO="https://github.com/ilammy/openssl-apple"
 
 # Output framework archive names
 XCFRAMEWORK_STATIC_NAME="openssl-static-xcframework.zip"
