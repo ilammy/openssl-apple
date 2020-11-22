@@ -577,11 +577,20 @@ if [ ${#OPENSSLCONF_ALL[@]} -gt 1 ]; then
 
     # Determine define condition
     case "${OPENSSLCONF_CURRENT}" in
+      *_ios_armv7s.h)
+        DEFINE_CONDITION="TARGET_OS_IOS && TARGET_OS_EMBEDDED && TARGET_CPU_ARM && defined(__ARM_ARCH_7S__)"
+      ;;
+      *_ios_armv7.h)
+        DEFINE_CONDITION="TARGET_OS_IOS && TARGET_OS_EMBEDDED && TARGET_CPU_ARM && !defined(__ARM_ARCH_7S__)"
+      ;;
       *_ios_arm64.h)
         DEFINE_CONDITION="TARGET_OS_IOS && TARGET_OS_EMBEDDED && TARGET_CPU_ARM64"
       ;;
       *_ios_arm64e.h)
         DEFINE_CONDITION="TARGET_OS_IOS && TARGET_OS_EMBEDDED && TARGET_CPU_ARM64E"
+      ;;
+      *_ios_sim_i386.h)
+        DEFINE_CONDITION="TARGET_OS_IOS && TARGET_OS_SIMULATOR && TARGET_CPU_X86"
       ;;
       *_ios_sim_x86_64.h)
         DEFINE_CONDITION="TARGET_OS_IOS && TARGET_OS_SIMULATOR && TARGET_CPU_X86_64"
